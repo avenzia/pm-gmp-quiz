@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM팀을 위한 GMP Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+<!-- EmailJS for sending result emails -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<!-- SheetJS for XLSX export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root {
+  --navy:#0D1F3C; --navy2:#16325C; --blue:#1A5CBA; --blue2:#2270D8;
+  --accent:#00C2CB; --accent2:#00A8B0;
+  --success:#00B67A; --danger:#E53E3E;
+  --white:#FFFFFF; --off:#F4F7FB; --gray:#8899AA; --gray2:#C8D4E0;
+  --card:#FFFFFF; --border:rgba(26,92,186,0.13);
+  --shadow:0 4px 28px rgba(13,31,60,0.10);
+  --shadow2:0 2px 8px rgba(13,31,60,0.07);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR','Inter',sans-serif;background:var(--off);color:var(--navy);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+
+/* TOP BAR */
+.topbar{width:100%;background:var(--navy);display:flex;align-items:center;padding:10px 20px;position:sticky;top:0;z-index:50;gap:8px;border-bottom:2px solid var(--blue);}
+.topbar-logo{font-family:'Inter',sans-serif;font-size:13px;font-weight:800;color:var(--white);letter-spacing:2px;margin-right:auto;display:flex;align-items:center;gap:8px;}
+.topbar-logo span{background:var(--accent);color:var(--navy);border-radius:4px;padding:2px 7px;font-size:11px;font-weight:800;letter-spacing:1px;}
+.hall-btn{padding:6px 14px;border-radius:6px;border:1.5px solid rgba(0,194,203,0.4);background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:700;color:var(--accent);cursor:pointer;letter-spacing:1px;transition:all 0.2s;margin-right:8px;}
+.hall-btn:hover{background:var(--accent);color:var(--navy);}
+.lang-btn{padding:6px 13px;border-radius:6px;border:1.5px solid rgba(255,255,255,0.2);background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:11px;font-weight:600;color:rgba(255,255,255,0.7);cursor:pointer;letter-spacing:1px;transition:all 0.2s;}
+.lang-btn.active{background:var(--blue2);border-color:var(--blue2);color:var(--white);}
+.lang-btn:hover:not(.active){border-color:rgba(255,255,255,0.5);color:var(--white);}
+
+/* CONTAINER */
+.container{width:100%;max-width:680px;padding:28px 20px 60px;}
+
+/* SCREEN */
+.screen{display:none;animation:fadeUp 0.4s ease;}
+.screen.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
+
+/* CARD */
+.card{background:var(--card);border-radius:16px;padding:36px 32px;box-shadow:var(--shadow);border:1px solid var(--border);}
+
+/* ── START SCREEN ── */
+.start-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(26,92,186,0.08);border:1px solid rgba(26,92,186,0.2);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--blue);letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;}
+.start-title{font-family:'Inter',sans-serif;font-size:26px;font-weight:800;color:var(--navy);line-height:1.25;margin-bottom:6px;}
+.start-title em{color:var(--blue2);font-style:normal;}
+.start-sub{font-size:13px;color:var(--gray);letter-spacing:1px;margin-bottom:24px;font-weight:400;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px;}
+.info-box{background:var(--off);border-radius:10px;padding:14px 12px;text-align:center;border:1px solid var(--border);}
+.info-box .val{font-family:'Inter',sans-serif;font-size:20px;font-weight:800;color:var(--blue2);}
+.info-box .lbl{font-size:10px;color:var(--gray);letter-spacing:1px;margin-top:3px;text-transform:uppercase;}
+.divider{height:1px;background:var(--border);margin:24px 0;}
+.field-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--blue);margin-bottom:8px;text-transform:uppercase;}
+.name-input{width:100%;padding:13px 16px;border:1.5px solid var(--gray2);border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:15px;color:var(--navy);background:var(--white);outline:none;margin-bottom:20px;transition:border-color 0.2s;}
+.name-input:focus{border-color:var(--blue2);box-shadow:0 0 0 3px rgba(26,92,186,0.10);}
+.name-input::placeholder{color:var(--gray2);}
+.count-label{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--blue);margin-bottom:12px;text-transform:uppercase;text-align:center;}
+.count-buttons{display:flex;gap:10px;justify-content:center;margin-bottom:24px;}
+.count-btn{flex:1;max-width:110px;padding:14px 8px;border:1.5px solid var(--gray2);background:var(--white);border-radius:10px;font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--gray);cursor:pointer;transition:all 0.2s;text-align:center;}
+.count-btn span{display:block;font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:500;color:var(--gray);margin-top:2px;letter-spacing:1px;}
+.count-btn:hover,.count-btn.selected{border-color:var(--blue2);background:rgba(26,92,186,0.06);color:var(--blue2);transform:translateY(-2px);box-shadow:0 4px 14px rgba(26,92,186,0.12);}
+.count-btn.selected span{color:var(--blue2);}
+.start-btn{width:100%;padding:16px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.25s;box-shadow:0 4px 18px rgba(26,92,186,0.30);}
+.start-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,92,186,0.38);}
+.start-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.footer-note{text-align:center;font-size:11px;color:var(--gray);opacity:0.6;margin-top:20px;letter-spacing:1px;}
+
+/* ── QUIZ SCREEN ── */
+.quiz-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.quiz-progress-text{font-family:'Inter',sans-serif;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--blue);}
+.quiz-score-text{font-size:12px;color:var(--gray);font-weight:500;}
+.progress-bar{width:100%;height:5px;background:var(--gray2);border-radius:3px;margin-bottom:24px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--accent));border-radius:3px;transition:width 0.5s ease;}
+
+/* Q type badges */
+.type-badge{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:2px;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;}
+.type-badge.ox{background:rgba(0,194,203,0.10);color:var(--accent2);border:1px solid rgba(0,194,203,0.25);}
+.type-badge.mc{background:rgba(26,92,186,0.08);color:var(--blue2);border:1px solid rgba(26,92,186,0.2);}
+
+.question-text{font-size:17px;font-weight:700;color:var(--navy);line-height:1.55;margin-bottom:22px;}
+
+/* OX options */
+.ox-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.ox-btn{padding:22px 10px;border:2px solid var(--gray2);background:var(--white);border-radius:12px;font-family:'Inter',sans-serif;font-size:28px;font-weight:800;color:var(--gray);cursor:pointer;transition:all 0.2s;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;}
+.ox-btn span{font-family:'Noto Sans KR',sans-serif;font-size:12px;font-weight:600;letter-spacing:1px;}
+.ox-btn:hover:not(:disabled){border-color:var(--blue2);background:rgba(26,92,186,0.04);transform:translateY(-2px);}
+.ox-btn.selected{border-color:var(--blue2);background:rgba(26,92,186,0.07);color:var(--blue2);}
+.ox-btn.correct{border-color:var(--success);background:rgba(0,182,122,0.08);color:var(--success);}
+.ox-btn.wrong{border-color:var(--danger);background:rgba(229,62,62,0.07);color:var(--danger);}
+.ox-btn:disabled{cursor:default;}
+
+/* MC options */
+.mc-grid{display:grid;grid-template-columns:1fr;gap:9px;margin-bottom:16px;}
+.mc-btn{padding:14px 16px;border:1.5px solid var(--gray2);background:var(--white);border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;color:var(--navy);cursor:pointer;transition:all 0.2s;text-align:left;line-height:1.4;display:flex;align-items:center;gap:12px;}
+.mc-btn-num{width:26px;height:26px;border-radius:50%;background:var(--off);border:1.5px solid var(--gray2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gray);flex-shrink:0;transition:all 0.2s;}
+.mc-btn:hover:not(:disabled){border-color:var(--blue2);background:rgba(26,92,186,0.04);}
+.mc-btn:hover:not(:disabled) .mc-btn-num{background:var(--blue2);border-color:var(--blue2);color:var(--white);}
+.mc-btn.selected{border-color:var(--blue2);background:rgba(26,92,186,0.06);}
+.mc-btn.selected .mc-btn-num{background:var(--blue2);border-color:var(--blue2);color:var(--white);}
+.mc-btn.correct{border-color:var(--success);background:rgba(0,182,122,0.07);}
+.mc-btn.correct .mc-btn-num{background:var(--success);border-color:var(--success);color:var(--white);}
+.mc-btn.wrong{border-color:var(--danger);background:rgba(229,62,62,0.06);}
+.mc-btn.wrong .mc-btn-num{background:var(--danger);border-color:var(--danger);color:var(--white);}
+.mc-btn:disabled{cursor:default;}
+
+.check-btn{width:100%;padding:14px;background:var(--navy);color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s;margin-bottom:12px;}
+.check-btn:hover:not(:disabled){background:var(--navy2);transform:translateY(-1px);}
+.check-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none;}
+
+.feedback-box{display:none;border-radius:12px;padding:16px 18px;animation:slideUp 0.3s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.feedback-box.correct-fb{background:rgba(0,182,122,0.08);border:1.5px solid rgba(0,182,122,0.25);}
+.feedback-box.wrong-fb{background:rgba(229,62,62,0.06);border:1.5px solid rgba(229,62,62,0.2);}
+.feedback-result{font-size:14px;font-weight:700;margin-bottom:7px;}
+.correct-fb .feedback-result{color:var(--success);}
+.wrong-fb .feedback-result{color:var(--danger);}
+.feedback-explanation{font-size:12px;color:var(--navy);line-height:1.75;opacity:0.8;}
+.next-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;margin-top:12px;display:none;transition:all 0.2s;box-shadow:0 4px 14px rgba(26,92,186,0.25);}
+.next-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(26,92,186,0.35);}
+
+/* ── RESULT SCREEN ── */
+.result-header{text-align:center;margin-bottom:24px;}
+.result-emoji{font-size:48px;margin-bottom:10px;}
+.result-title{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.result-sub{font-size:12px;color:var(--gray);letter-spacing:2px;}
+.score-ring-wrap{display:flex;justify-content:center;margin:20px 0 24px;}
+.score-ring{width:130px;height:130px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--accent));display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(26,92,186,0.30);}
+.score-num{font-family:'Inter',sans-serif;font-size:38px;font-weight:800;color:var(--white);line-height:1;}
+.score-denom{font-size:11px;color:rgba(255,255,255,0.75);margin-top:2px;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;}
+.stat-box{background:var(--off);border-radius:10px;padding:14px;text-align:center;border:1px solid var(--border);}
+.stat-val{font-family:'Inter',sans-serif;font-size:24px;font-weight:800;color:var(--blue2);}
+.stat-lbl{font-size:10px;color:var(--gray);letter-spacing:1px;margin-top:3px;text-transform:uppercase;}
+.result-msg{text-align:center;font-size:13px;line-height:1.8;color:var(--navy);opacity:0.7;margin-bottom:20px;font-style:italic;}
+.section-title{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--blue);margin-bottom:10px;text-align:center;text-transform:uppercase;}
+.top10-list{margin-bottom:20px;}
+.rank-row{display:flex;align-items:center;padding:9px 12px;border-radius:8px;margin-bottom:5px;background:var(--off);border:1px solid var(--border);}
+.rank-row.me{background:rgba(26,92,186,0.07);border-color:rgba(26,92,186,0.2);}
+.rank-num{font-family:'Inter',sans-serif;font-size:14px;font-weight:700;width:30px;color:var(--gray);}
+.rank-num.gold{color:#D4A017;} .rank-num.silver{color:#8899AA;} .rank-num.bronze{color:#A0522D;}
+.rank-name{flex:1;font-size:13px;color:var(--navy);}
+.rank-score{font-size:13px;font-weight:700;color:var(--blue2);}
+.retry-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.25s;box-shadow:0 4px 18px rgba(26,92,186,0.28);}
+.retry-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(26,92,186,0.38);}
+
+/* ── HALL OF FAME ── */
+.hof-title-wrap{text-align:center;margin-bottom:24px;}
+.hof-icon{font-size:36px;margin-bottom:8px;}
+.hof-title{font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:var(--navy);margin-bottom:4px;}
+.hof-sub{font-size:11px;color:var(--gray);letter-spacing:2px;text-transform:uppercase;}
+.hof-table{width:100%;border-collapse:collapse;margin-bottom:24px;}
+.hof-table th{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--blue);text-align:left;padding:9px 12px;border-bottom:2px solid rgba(26,92,186,0.15);text-transform:uppercase;}
+.hof-table th:last-child{text-align:right;}
+.hof-table td{padding:11px 12px;font-size:13px;color:var(--navy);border-bottom:1px solid var(--border);}
+.hof-table td:last-child{text-align:right;font-weight:700;color:var(--blue2);}
+.hof-table tr:hover td{background:rgba(26,92,186,0.03);}
+.hof-rank-cell{font-family:'Inter',sans-serif;font-size:15px;font-weight:700;width:40px;}
+.hof-back-btn{width:100%;padding:14px;background:var(--navy);color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s;margin-bottom:10px;}
+.hof-back-btn:hover{background:var(--navy2);transform:translateY(-1px);}
+.hof-restart-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--blue),var(--blue2));color:var(--white);border:none;border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s;box-shadow:0 4px 14px rgba(26,92,186,0.25);}
+.hof-restart-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(26,92,186,0.35);}
+.download-btn{width:100%;padding:13px;background:var(--white);color:var(--accent2);border:1.5px solid var(--accent2);border-radius:10px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all 0.2s;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.download-btn:hover{background:var(--accent2);color:var(--white);transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,168,176,0.25);}
+.download-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none;}
+.email-status{font-size:11px;color:var(--gray);text-align:center;margin-top:8px;letter-spacing:0.5px;}
+.email-status.success{color:var(--success);}
+.email-status.error{color:var(--danger);}
+.hof-loading{text-align:center;padding:36px;font-size:28px;animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:0.4;}50%{opacity:1;}}
+.hof-empty{text-align:center;padding:36px;color:var(--gray);font-size:13px;line-height:1.8;}
+
+/* SAVING */
+.saving-overlay{display:none;position:fixed;inset:0;background:rgba(13,31,60,0.55);z-index:100;align-items:center;justify-content:center;}
+.saving-overlay.show{display:flex;}
+.saving-box{background:var(--white);border-radius:16px;padding:28px 36px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.2);}
+.saving-spin{font-size:32px;animation:spin 1s linear infinite;display:inline-block;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.saving-box p{font-size:14px;font-weight:700;color:var(--navy);margin-top:10px;}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-logo">
+    <span>GMP</span> QUIZ
+  </div>
+  <button class="hall-btn" id="hall-btn" onclick="showHallOfFame()">🏆 명예의 전당</button>
+  <button class="lang-btn active" id="btn-ko" onclick="setLang('ko')">한국어</button>
+  <button class="lang-btn" id="btn-en" onclick="setLang('en')">English</button>
+</div>
+
+<div class="container">
+
+  <!-- START -->
+  <div class="screen active" id="screen-start">
+    <div class="card">
+      <div class="start-badge" id="start-badge">📋 GMP Training Quiz</div>
+      <h1 class="start-title" id="start-title">PM팀을 위한<br><em>GMP Quiz</em></h1>
+      <p class="start-sub" id="start-sub">Receiving · Storage · Temperature · Distribution · Status Control</p>
+      <div class="info-grid">
+        <div class="info-box"><div class="val">30</div><div class="lbl" id="lbl-q">문제</div></div>
+        <div class="info-box"><div class="val">O/X</div><div class="lbl" id="lbl-ox">+ 객관식</div></div>
+        <div class="info-box"><div class="val">FDA</div><div class="lbl" id="lbl-fda">실사 기반</div></div>
+      </div>
+      <div class="divider"></div>
+      <p class="field-label" id="label-name">참여자 이름</p>
+      <input class="name-input" id="name-input" type="text" placeholder="이름을 입력하세요" oninput="onNameInput()">
+      <button class="start-btn" id="start-btn" onclick="startQuiz()" disabled id="start-btn">퀴즈 시작하기 →</button>
+    </div>
+    <p class="footer-note" id="footer-note">본 퀴즈는 PM팀 GMP 교육 목적으로 제작되었습니다</p>
+  </div>
+
+  <!-- QUIZ -->
+  <div class="screen" id="screen-quiz">
+    <div class="card">
+      <div class="quiz-header">
+        <span class="quiz-progress-text" id="progress-text">1 / 10</span>
+        <span class="quiz-score-text" id="score-text">점수: 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <span class="type-badge" id="type-badge"></span>
+      <p class="question-text" id="question-text"></p>
+      <div id="options-area"></div>
+      <button class="check-btn" id="check-btn" onclick="checkAnswer()" disabled>정답 확인</button>
+      <div class="feedback-box" id="feedback-box">
+        <p class="feedback-result" id="feedback-result"></p>
+        <p class="feedback-explanation" id="feedback-explanation"></p>
+      </div>
+      <button class="next-btn" id="next-btn" onclick="nextQuestion()">다음 문제 →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="screen" id="screen-result">
+    <div class="card">
+      <div class="result-header">
+        <div class="result-emoji" id="result-emoji">🏆</div>
+        <div class="result-title" id="result-title">퀴즈 완료!</div>
+        <div class="result-sub">QUIZ COMPLETE</div>
+      </div>
+      <div class="score-ring-wrap">
+        <div class="score-ring">
+          <div class="score-num" id="final-score">0</div>
+          <div class="score-denom" id="final-total">/ 30 pts</div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-val" id="stat-correct">0</div><div class="stat-lbl" id="lbl-correct">정답</div></div>
+        <div class="stat-box"><div class="stat-val" id="stat-wrong">0</div><div class="stat-lbl" id="lbl-wrong">오답</div></div>
+      </div>
+      <p class="result-msg" id="result-msg"></p>
+      <p class="section-title" id="top10-title">🏅 TOP 10 랭킹</p>
+      <div class="top10-list" id="top10-list"><div class="hof-loading">⏳</div></div>
+      <button class="retry-btn" id="retry-btn" onclick="resetQuiz()">다시 도전하기 →</button>
+      <button class="download-btn" id="result-download-btn" onclick="downloadXlsx()" style="margin-top:10px;">📥 <span id="download-btn-label">전체 결과 엑셀 다운로드</span></button>
+      <p class="email-status" id="email-status"></p>
+    </div>
+  </div>
+
+  <!-- HALL OF FAME -->
+  <div class="screen" id="screen-hof">
+    <div class="card">
+      <div class="hof-title-wrap">
+        <div class="hof-icon">🏆</div>
+        <div class="hof-title" id="hof-title">명예의 전당</div>
+        <div class="hof-sub" id="hof-sub">TOP 20 RANKING</div>
+      </div>
+      <div id="hof-content"><div class="hof-loading">⏳</div></div>
+      <button class="hof-back-btn" id="hof-back-btn" onclick="goBack()">← 돌아가기</button>
+      <button class="hof-restart-btn" id="hof-restart-btn" onclick="resetQuiz()">처음으로 →</button>
+      <button class="download-btn" id="hof-download-btn" onclick="downloadXlsx()" style="margin-top:10px;">📥 <span id="hof-download-btn-label">전체 결과 엑셀 다운로드</span></button>
+    </div>
+  </div>
+
+</div>
+
+<div class="saving-overlay" id="saving-overlay">
+  <div class="saving-box">
+    <div class="saving-spin">⚙️</div>
+    <p id="saving-text">점수 저장 중...</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyAJFodCtd0nZ9R3FIjKN0FSsBvFZkYVcqo",
+  authDomain:"cat-quiz-ece53.firebaseapp.com",
+  projectId:"cat-quiz-ece53",
+  storageBucket:"cat-quiz-ece53.firebasestorage.app",
+  messagingSenderId:"306933977395",
+  appId:"1:306933977395:web:bd9d55fc46d0091d95ae46"
+});
+const db = getFirestore(app);
+
+// ── QUIZ DATA (50문제 Pool — 30문제 랜덤 추출) ────────────────────
+// type: 'ox' | 'mc'
+// answer: 'O'|'X' for ox / 0-indexed correct option index for mc
+const QUESTIONS = [
+  // ─────────────────────────────────────────────────────
+  // [Group A] PM 입·출고 GDP 위반 7가지
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'원료가 입고되어 검수를 마쳤지만, 두 시간 뒤 기억에 의존해 입고 시각과 수량을 기재한 것은 GDP 위반이다.',
+    qen:'Filling in the receipt time and quantity from memory two hours after inspection is a GDP violation.',
+    answer:'O',
+    exko:'ALCOA+ Contemporaneous 위반입니다. 검수 시점에 즉시 기록해야 하며, 기억에 의존한 기재는 입고 시각·수량 신뢰성을 보장할 수 없습니다.',
+    exen:'This violates ALCOA+ Contemporaneous. Records must be made at the time of receipt; memory-based entries cannot ensure reliable receipt time or quantity.'
+  },
+  {
+    type:'ox',
+    qko:'입고 수량 오기재를 수정액(White-Out)으로 지우고 다시 기재해도 정확한 숫자가 남기 때문에 GDP 위반이 아니다.',
+    qen:'Erasing an incorrect received quantity with White-Out and rewriting is not a GDP violation as long as the correct number remains.',
+    answer:'X',
+    exko:'수정액 사용은 원본 데이터 은폐로 Data Integrity 위반의 직접 증거입니다. CLIDE 원칙(Cross out, Initial, Date, Explanation)을 따라야 합니다.',
+    exen:'White-Out conceals original data and is direct evidence of a DI violation. The CLIDE principle (Cross out, Initial, Date, Explanation) must be followed.'
+  },
+  {
+    type:'ox',
+    qko:'입고 검수 시 손상·이물 점검란을 빈칸으로 두는 것은 추후 데이터 추가 가능성을 시사해 FDA 의심 대상이 된다.',
+    qen:'Leaving the damage/contamination check field blank at receipt suggests potential later entry and is subject to FDA scrutiny.',
+    answer:'O',
+    exko:'공란 방치는 기록 누락인지 의도적 생략인지 구분이 불가능합니다. 해당 없는 항목은 반드시 "N/A"로 기재해야 합니다.',
+    exen:'Blank fields cannot be distinguished from intentional omissions. Non-applicable fields must be marked "N/A".'
+  },
+  {
+    type:'ox',
+    qko:'검수자가 자리를 비웠을 때 동료가 대신 입고 서명을 해주는 것은 효율성 측면에서 허용된다.',
+    qen:'It is acceptable for a colleague to sign the receipt on behalf of an absent inspector for efficiency.',
+    answer:'X',
+    exko:'대리 서명은 ALCOA+ Attributable 위반이며 Falsification(위조)에 해당합니다. 실제 검수를 수행한 본인만 서명해야 합니다.',
+    exen:'Proxy signing violates ALCOA+ Attributable and constitutes falsification. Only the person who actually performed the inspection may sign.'
+  },
+  {
+    type:'ox',
+    qko:'창고 입·출고 기록을 연필로 작성한 후 나중에 볼펜으로 덧쓰는 것은 GDP 위반이다.',
+    qen:'Writing warehouse receipt/dispatch records in pencil and overwriting with pen later is a GDP violation.',
+    answer:'O',
+    exko:'연필 사용은 Legible · Original · Accurate 위반입니다. 모든 GMP 기록은 지워지지 않는 파란 또는 검정 유성 볼펜으로만 작성해야 합니다.',
+    exen:'Pencil use violates Legible, Original, and Accurate principles. All GMP records must be written only with indelible blue or black ballpoint pens.'
+  },
+  {
+    type:'ox',
+    qko:'입고 검수 결과를 "OK"라고만 기재하고 실제 수치를 기록하지 않은 것은 GDP 위반이다.',
+    qen:'Recording inspection results as just "OK" without actual values is a GDP violation.',
+    answer:'O',
+    exko:'미승인 약어("OK", "Done"만 기재)는 ALCOA+ Complete 위반입니다. 측정 수치와 함께 구체적으로 기록해야 추적성이 보장됩니다.',
+    exen:'Unauthorized abbreviations (just "OK" or "Done") violate ALCOA+ Complete. Specific measured values must accompany the entry for traceability.'
+  },
+  {
+    type:'ox',
+    qko:'창고팀 전원이 공유하는 WMS 계정을 통해 입·출고 처리를 하는 것은 작업자 추적이 불가하므로 Data Integrity 위반이다.',
+    qen:'Processing receipts/dispatches through a WMS shared account makes operator tracking impossible, violating Data Integrity.',
+    answer:'O',
+    exko:'공유 계정 사용은 ALCOA+ Attributable 위반으로, 누가 어떤 작업을 수행했는지 추적할 수 없습니다. 모든 작업자는 개인 계정을 사용해야 합니다.',
+    exen:'Shared accounts violate ALCOA+ Attributable, making it impossible to track who performed each action. Every operator must use a personal account.'
+  },
+  {
+    type:'ox',
+    qko:'창고 온·습도 점검 기록을 퇴근 전 한 번에 소급 기재해도 정확한 값이라면 문제없다.',
+    qen:'Back-filling warehouse temperature/humidity check records before shift end is acceptable if the values are accurate.',
+    answer:'X',
+    exko:'소급 기재는 ALCOA+ Contemporaneous 위반이며 Warning Letter로 직결됩니다. 점검 시점에 즉시 기록해야 합니다.',
+    exen:'Back-filling violates ALCOA+ Contemporaneous and directly triggers Warning Letters. Records must be made at the time of inspection.'
+  },
+  {
+    type:'ox',
+    qko:'온도 데이터로거의 기록을 출력하기 전에 임의로 수정하는 것은 21 CFR 211.68 위반에 해당한다.',
+    qen:'Modifying temperature data logger records before printout violates 21 CFR 211.68.',
+    answer:'O',
+    exko:'전자 기록의 임의 수정은 ★★★★★ 위험도의 Data Integrity 위반입니다. 21 CFR 211.68(b)는 데이터의 무결성과 추적성을 요구합니다.',
+    exen:'Arbitrary modification of electronic records is a ★★★★★ Data Integrity violation. 21 CFR 211.68(b) requires data integrity and traceability.'
+  },
+  {
+    type:'ox',
+    qko:'출고 전표를 Audit Trail 없이 USB로 추출하는 것은 데이터 추적성을 훼손하는 GMP 위반이다.',
+    qen:'Exporting dispatch records via USB without an audit trail compromises traceability and is a GMP violation.',
+    answer:'O',
+    exko:'Audit Trail 없는 데이터 추출은 누가, 언제, 무엇을 추출했는지 추적이 불가합니다. 모든 전자 기록 작업은 Audit Trail이 활성화되어야 합니다.',
+    exen:'Data extraction without an Audit Trail makes who, when, and what untraceable. All electronic record operations require Audit Trail activation.'
+  },
+  {
+    type:'mc',
+    qko:'PM팀 입·출고와 관련된 GDP 위반 7가지에 해당하지 않는 것은?',
+    qen:'Which is NOT among the 7 PM-team GDP violations in receiving/dispatch operations?',
+    options_ko:['사후 기록 (Backdating)','수정액 사용 (White-Out)','품질 검사 합격 판정','공유 계정 사용 (전자 기록 DI)'],
+    options_en:['Backdating','White-Out Usage','Quality Test Acceptance','Shared Account Use (E-Record DI)'],
+    answer:2,
+    exko:'PM팀 GDP 위반 7가지는 사후 기록, 수정액·덧쓰기, 공란 방치, 대리 서명, 연필 사용, 미승인 약어, 전자 기록 DI 위반입니다. 품질 검사 합격 판정은 QC의 정상 업무이며 위반 항목이 아닙니다.',
+    exen:'The 7 PM-team GDP violations are Backdating, White-Out, Blank Space, Signing for Others, Pencil Use, Unauthorized Abbreviations, and E-Record DI Violation. Quality test acceptance is QC\'s normal duty.'
+  },
+  {
+    type:'mc',
+    qko:'창고 입·출고 기록 작성 시 사용해야 하는 필기구는?',
+    qen:'What writing instrument should be used for warehouse receipt/dispatch records?',
+    options_ko:['연필 (수정 용이)','수성펜 (잘 보임)','지워지지 않는 파란 또는 검정 유성 볼펜','형광펜 (눈에 잘 띔)'],
+    options_en:['Pencil (easy to correct)','Water-soluble pen (visible)','Indelible blue or black ballpoint pen','Highlighter (eye-catching)'],
+    answer:2,
+    exko:'GDP는 영구성(Enduring)을 요구합니다. 지워지지 않는 잉크의 파란 또는 검정 유성 볼펜만 허용됩니다. 회사 SOP에서 색상을 명확히 규정합니다.',
+    exen:'GDP requires Enduring records. Only indelible blue or black ballpoint pen is permitted; company SOPs specify the exact color.'
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [Group B] 입고·검수 / 자재 관리
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'입고된 원료 수량을 실측 없이 납품서 숫자만 옮겨 적는 것은 ALCOA+ Accurate 위반이다.',
+    qen:'Copying delivery-note figures without physically counting violates ALCOA+ Accurate.',
+    answer:'O',
+    exko:'기록은 실제 입고량을 반영해야 합니다. 수량 오기재는 재고 불일치와 추적성 붕괴로 이어지며 품질 위험을 초래합니다.',
+    exen:'Records must reflect the actual received quantity. Misrecorded quantities break inventory reconciliation and traceability, creating quality risks.'
+  },
+  {
+    type:'ox',
+    qko:'입고 검수 시 실측 후 납품서와 대조하지 않고 납품서 수치를 그대로 기재해도 무방하다.',
+    qen:'After physical count at receipt, it is acceptable to record the delivery note figure without reconciliation.',
+    answer:'X',
+    exko:'입고 수량은 반드시 실물 계수 후 납품서와 대조하여 기재해야 합니다. 실측-대조 절차 누락은 입고 정확성 보장 불가입니다.',
+    exen:'Received quantities must be physically counted, then reconciled with the delivery note before recording. Skipping reconciliation breaks receipt accuracy.'
+  },
+  {
+    type:'ox',
+    qko:'입고 자재의 로트번호(Lot Number)를 기재하지 않은 채 보관 구역으로 이동시키는 것은 GMP 위반이다.',
+    qen:'Moving incoming materials to storage without recording the Lot Number is a GMP violation.',
+    answer:'O',
+    exko:'로트번호는 추적성의 핵심 정보입니다. 21 CFR 211.84에 따라 모든 입고 자재는 식별 정보(품목명, 로트, 수량, 입고일 등)를 즉시 기록해야 합니다.',
+    exen:'Lot Numbers are core traceability information. Under 21 CFR 211.84, all incoming materials must have identification info (item, lot, quantity, receipt date) recorded immediately.'
+  },
+  {
+    type:'ox',
+    qko:'입고된 원료에 손상이 있어도 검수 후 사용 가능하다고 판단되면 별도 기록 없이 진행해도 된다.',
+    qen:'If incoming materials show damage but are deemed usable, proceeding without separate documentation is acceptable.',
+    answer:'X',
+    exko:'손상 발견 시 반드시 기록하고 QA에 보고하여 사용 가능 여부를 정식 평가해야 합니다. 무기록 진행은 추적성 붕괴이며 21 CFR 211.84 위반입니다.',
+    exen:'When damage is found, it must be documented and reported to QA for formal usability assessment. Proceeding without records breaks traceability, violating 21 CFR 211.84.'
+  },
+  {
+    type:'mc',
+    qko:'입고 검수 시 즉시 기록해야 하는 정보가 아닌 것은?',
+    qen:'Which is NOT required to be recorded at the time of receipt inspection?',
+    options_ko:['입고 시각','입고 수량 (실측)','로트번호','다음 분기 예상 입고량'],
+    options_en:['Receipt time','Received quantity (actual count)','Lot number','Next quarter expected receipts'],
+    answer:3,
+    exko:'입고 시점에 즉시 기록해야 할 정보는 시각, 실측 수량, 로트번호, 품목명, 손상·이물 여부 등입니다. 예상 입고량은 입고 기록과 무관한 계획 정보입니다.',
+    exen:'Items to be recorded at receipt include time, actual quantity, lot number, item name, and damage/contamination status. Future projections are unrelated planning info.'
+  },
+  {
+    type:'mc',
+    qko:'입고된 원료에 손상이 발견되었을 때 올바른 처리 순서는?',
+    qen:'What is the correct procedure when damage is found in received materials?',
+    options_ko:['임의로 사용 가능 판단 후 진행','즉시 기록 → 격리 → QA 보고 → Deviation 등록 → 사용 가부 결정','쓰레기통에 폐기','다음 입고 시 보충 요청'],
+    options_en:['Decide usability informally and proceed','Document immediately → quarantine → notify QA → log deviation → use decision','Discard in trash','Request replacement at next receipt'],
+    answer:1,
+    exko:'손상 발견 시 정해진 절차를 따라야 합니다: 즉시 기록 → 격리 → QA 보고 → Deviation 등록 → 정식 사용 가부 결정. 임의 판단은 GMP 위반입니다.',
+    exen:'When damage is found, follow the procedure: document → quarantine → notify QA → log deviation → formal usability decision. Informal judgment violates GMP.'
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [Group C] 보관·온도 관리
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'냉장 보관 구역의 온도가 기준을 초과해 알람이 발생했으나 "잠깐 초과 후 회복되었다"고 판단해 기록하지 않은 것은 GDP 위반이다.',
+    qen:'Not recording a temperature excursion alarm because "it was brief and recovered" is a GDP violation.',
+    answer:'O',
+    exko:'Contemporaneous · Complete 위반입니다. 모든 온도 일탈은 즉시 기록하고 조사해야 하며, 미기록은 보관 품질 입증 불가로 이어집니다.',
+    exen:'This violates Contemporaneous and Complete. All temperature excursions must be logged and investigated; unlogged excursions defeat storage quality assurance.'
+  },
+  {
+    type:'ox',
+    qko:'2~8°C 냉장고가 24시간 이상 17.4°C까지 이탈했지만 조사하지 않은 것은 21 CFR 211.142(b) 위반에 해당한다.',
+    qen:'A 2-8°C refrigerator out of range for more than 24 hours up to 17.4°C without investigation violates 21 CFR 211.142(b).',
+    answer:'O',
+    exko:'2025년 ABR Laboratory FDA WL 696872 실제 사례입니다. 온도 일탈 미조사는 보관 조건 입증 불가로 직결되며 Warning Letter 발급 사유입니다.',
+    exen:'This is an actual case (ABR Laboratory FDA WL 696872, 2025). Uninvestigated temperature excursions directly mean storage conditions cannot be verified, triggering a Warning Letter.'
+  },
+  {
+    type:'ox',
+    qko:'온·습도 모니터링 프로브가 작동하지 않아도 보관 환경이 안정적이라면 별도 조치는 불필요하다.',
+    qen:'If monitoring probes are non-operational but the storage environment seems stable, no further action is needed.',
+    answer:'X',
+    exko:'프로브 미작동은 보관 조건 입증 기록이 없어지는 것을 의미합니다. 2022년 재포장 시설 FDA WL 사례로 즉시 수리·교체 및 영향 평가가 필수입니다.',
+    exen:'Non-operational probes mean no records to prove storage conditions. Per the 2022 repacker FDA WL, immediate repair/replacement and impact assessment are required.'
+  },
+  {
+    type:'ox',
+    qko:'온도 일탈 데이터도 원본(Raw Data)이며, 모든 기록은 추적 가능해야 한다.',
+    qen:'Temperature excursion data is also raw data, and all records must be traceable.',
+    answer:'O',
+    exko:'일탈 결과 미저장 후 재측정(Testing into compliance)은 중대한 DI 위반입니다. 일탈 데이터도 원본이며 폐기·은닉은 절대 금지입니다.',
+    exen:'Re-measuring without saving excursion results (Testing into compliance) is a serious DI violation. Excursion data is also raw data, and discarding/hiding is strictly prohibited.'
+  },
+  {
+    type:'ox',
+    qko:'온도 일탈 알람 발생 시 단순히 Reset 후 작업을 계속하는 것은 올바른 처리이다.',
+    qen:'Simply resetting after a temperature excursion alarm and continuing work is the correct approach.',
+    answer:'X',
+    exko:'"Reset Completed"는 답이 아닙니다. 발생 시각 정확히 기록 → Root Cause 즉시 분석 → 영향 재고 식별 및 평가 → Deviation 시스템 등록 → CAPA 수립이 정답입니다.',
+    exen:'"Reset Completed" is never an answer. The correct flow: record timestamp → root cause analysis → identify & assess affected stock → log deviation → establish CAPA.'
+  },
+  {
+    type:'ox',
+    qko:'온도 데이터를 가동하지 않은 설비에 대해 조작했다고 작업자가 인정한 것은 ★★★★★ 위험도의 Data Integrity 위반이다.',
+    qen:'Operators admitting to falsifying temperature data for non-operating equipment is a ★★★★★ Data Integrity violation.',
+    answer:'O',
+    exko:'2025년 Tyche Industries FDA 실제 사례입니다. 가동하지 않은 설비의 온도 데이터 조작은 21 CFR 211.68(b) 위반의 직접 증거이며 ★★★★★ 위험도입니다.',
+    exen:'This is an actual 2025 Tyche Industries FDA case. Falsifying temperature data for non-operating equipment is direct evidence of 21 CFR 211.68(b) violation, ★★★★★ risk.'
+  },
+  {
+    type:'mc',
+    qko:'온도 일탈 알람 발생 시 올바른 처리 순서는?',
+    qen:'What is the correct procedure when a temperature excursion alarm occurs?',
+    options_ko:['Reset 후 작업 계속','발생 시각 기록 → Root Cause 분석 → 영향 재고 평가 → Deviation 등록 → CAPA','구두 보고 후 종결','다음 점검 시 한꺼번에 기록'],
+    options_en:['Reset and continue','Record timestamp → root cause analysis → assess affected stock → log deviation → CAPA','Verbal report and close','Record together at next inspection'],
+    answer:1,
+    exko:'"Reset Completed"는 답이 아닙니다. 발생 시각 정확히 기록 → Root Cause 즉시 분석 → 영향 재고 식별 및 평가 → Deviation 시스템 등록 → CAPA 수립이 정답입니다.',
+    exen:'"Reset Completed" is never an answer. The correct flow: record timestamp → root cause analysis → identify & assess affected stock → log deviation → establish CAPA.'
+  },
+  {
+    type:'mc',
+    qko:'온도 데이터 무결성과 관련된 위험 유형이 아닌 것은?',
+    qen:'Which is NOT a temperature data integrity risk type?',
+    options_ko:['온도 일탈 결과 미저장 후 재측정','기준 충족까지 반복 측정 (Testing into compliance)','Audit Trail 없이 USB로 데이터 추출','21 CFR Part 11 준수'],
+    options_en:['Re-measuring without saving excursion','Re-reading until in range (Testing into compliance)','USB data export without audit trail','Compliance with 21 CFR Part 11'],
+    answer:3,
+    exko:'21 CFR Part 11 준수는 오히려 데이터 무결성 보장에 필수입니다. 나머지 세 가지는 모두 온도 데이터 DI 위반의 대표적 위험 유형입니다.',
+    exen:'21 CFR Part 11 compliance is in fact essential for data integrity. The other three are representative temperature DI risk types.'
+  },
+  {
+    type:'mc',
+    qko:'온도 데이터가 중요한 이유로 가장 적절하지 않은 것은?',
+    qen:'Which is the LEAST appropriate reason why temperature data matters?',
+    options_ko:['제품 품질·안정성 보장의 핵심','보관·출고 적합성의 직접 근거','21 CFR Part 11 준수 필수','창고 직원 평가 자료'],
+    options_en:['Core to product quality and stability','Direct basis for storage/release suitability','21 CFR Part 11 compliance required','Warehouse staff evaluation material'],
+    answer:3,
+    exko:'온도 데이터는 제품 품질, 보관·출고 적합성 입증, 21 CFR Part 11 준수와 직접 관련됩니다. 직원 평가는 본래 목적이 아닙니다.',
+    exen:'Temperature data directly relates to product quality, storage/release suitability, and 21 CFR Part 11 compliance. Staff evaluation is not its purpose.'
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [Group D] 상태·격리 / 출고 관리
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'입고된 원료를 보관 구역으로 옮기면서 "격리(Quarantine)" 라벨을 부착하지 않은 것은 GMP 위반이다.',
+    qen:'Storing received materials without attaching a "Quarantine" status label is a GMP violation.',
+    answer:'O',
+    exko:'상태 라벨 미부착은 격리·합격 식별 불가로 혼동·오출고 위험을 초래합니다. 라벨은 상태 표시의 원본 기록이며 누락 시 추적성이 붕괴됩니다.',
+    exen:'Missing status labels make it impossible to distinguish quarantine/released stock, causing mix-up and wrong-dispatch risk. Labels are original status records.'
+  },
+  {
+    type:'ox',
+    qko:'미검 원료와 합격품은 같은 구역에 보관해도 식별만 잘 되어 있다면 무방하다.',
+    qen:'Untested materials and released stock can be stored in the same area as long as they are well identified.',
+    answer:'X',
+    exko:'미검·합격품의 물리적 격리는 필수입니다. 같은 구역 보관은 혼동·오출고 위험을 크게 증가시키며 21 CFR 211.142(a) 위반입니다.',
+    exen:'Physical segregation of untested and released stock is required. Same-area storage greatly increases mix-up risk, violating 21 CFR 211.142(a).'
+  },
+  {
+    type:'ox',
+    qko:'QA Release 상태를 확인하지 않고 제품을 출고한 것은 21 CFR 211.142/.150 위반이다.',
+    qen:'Dispatching product without confirming QA Release status violates 21 CFR 211.142/.150.',
+    answer:'O',
+    exko:'Release된 제품만 출고 가능합니다. Release 미확인 출고는 미승인 제품 유통 위험으로 직결되며 환자 안전을 위협합니다.',
+    exen:'Only QA-released products may be dispatched. Dispatching without release verification risks distributing unreleased products and threatens patient safety.'
+  },
+  {
+    type:'ox',
+    qko:'분실된 출고 전표를 일탈 등록 없이 기억에 의존해 새 전표에 재작성하는 것은 허용된다.',
+    qen:'Recreating a lost dispatch slip from memory on a new slip without raising a deviation is acceptable.',
+    answer:'X',
+    exko:'Original 위반입니다. 원본 기록 분실 시 즉시 일탈 등록 및 조사가 필요하며, 임의 재작성은 유통 추적성 신뢰를 붕괴시킵니다.',
+    exen:'This violates Original. When records are lost, a deviation must be raised and investigated immediately. Memory-based re-creation breaks distribution traceability.'
+  },
+  {
+    type:'ox',
+    qko:'FEFO(First Expired First Out, 선입선출)는 PM팀이 반드시 준수해야 할 출고 원칙이다.',
+    qen:'FEFO (First Expired First Out) is a dispatch principle PM team must follow.',
+    answer:'O',
+    exko:'FEFO 미준수는 21 CFR 211.150 위반으로 FDA 일반 관찰 유형 중 하나입니다. 유효기간이 빠른 재고를 먼저 출고해야 품질 위험을 최소화할 수 있습니다.',
+    exen:'Failure to follow FEFO violates 21 CFR 211.150 and is a common FDA observation. Stock with the earliest expiry must be dispatched first to minimize quality risks.'
+  },
+  {
+    type:'ox',
+    qko:'유통 기록이 미비해 제품의 유통 경로 추적이 불가능한 것은 21 CFR 211.196 위반이다.',
+    qen:'Inadequate distribution records that prevent tracking the product\'s path violates 21 CFR 211.196.',
+    answer:'O',
+    exko:'유통 기록은 회수(Recall) 시 필수이며, 추적 불가는 환자 안전에 직접 영향을 미칩니다. 21 CFR 211.196은 모든 유통 기록의 완전성을 요구합니다.',
+    exen:'Distribution records are essential for recalls; untraceability directly impacts patient safety. 21 CFR 211.196 requires complete distribution records.'
+  },
+  {
+    type:'mc',
+    qko:'창고 보관 시 상태 라벨(격리/합격/불합격)을 부착하는 가장 중요한 이유는?',
+    qen:'What is the most important reason for attaching status labels (quarantine/released/rejected) in warehouse storage?',
+    options_ko:['보기 좋게 정리하기 위해','상태 식별 및 혼동·오출고 방지','감사관에게 보여주기 위해','직원 교대 시 참고 자료'],
+    options_en:['For neat organization','Status identification and mix-up prevention','To show inspectors','Reference for shift change'],
+    answer:1,
+    exko:'상태 라벨은 격리·합격·불합격을 명확히 식별해 혼동과 오출고를 방지하는 핵심 도구입니다. 21 CFR 211.122는 모든 자재의 상태 표시를 요구합니다.',
+    exen:'Status labels clearly identify quarantine/released/rejected stock to prevent mix-ups and wrong dispatches. 21 CFR 211.122 requires status labeling of all materials.'
+  },
+  {
+    type:'mc',
+    qko:'출고 전 반드시 확인해야 할 사항이 아닌 것은?',
+    qen:'Which is NOT required to be verified before dispatch?',
+    options_ko:['QA Release 상태','로트번호 일치 여부','수량 정확성','다음 배송지 직원의 이름'],
+    options_en:['QA Release status','Lot number match','Quantity accuracy','Name of next destination\'s staff'],
+    answer:3,
+    exko:'출고 전 필수 확인사항: QA Release 상태, 로트번호, 수량, 유효기간, FEFO 준수, 배송지 등입니다. 수령자의 이름은 일반 출고 절차 필수 항목이 아닙니다.',
+    exen:'Required pre-dispatch checks: QA Release status, lot number, quantity, expiry, FEFO compliance, destination. Receiver\'s name is not a standard mandatory check.'
+  },
+  {
+    type:'mc',
+    qko:'분실된 출고 기록 발견 시 올바른 처리는?',
+    qen:'What is the correct action when a lost dispatch record is discovered?',
+    options_ko:['기억으로 새 전표에 재작성','폐기 처리','즉시 일탈(Deviation) 등록 및 조사','다음 출고 시 보충 작성'],
+    options_en:['Recreate on new slip from memory','Discard','Immediately raise a deviation and investigate','Backfill at next dispatch'],
+    answer:2,
+    exko:'원본 기록 분실 시 즉시 일탈 등록 및 조사가 정답입니다. 임의 재작성은 유통 추적성을 붕괴시키며 ALCOA+ Original 위반에 해당합니다.',
+    exen:'When original records are lost, immediate deviation logging and investigation is correct. Re-creation breaks distribution traceability and violates ALCOA+ Original.'
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [Group E] Root Cause Analysis / 일탈의 정상화
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'제약 산업 공정 편차의 80% 이상이 "Human Error"로 분류되지만, 진짜 원인은 따로 있다.',
+    qen:'Over 80% of pharma process deviations are classified as "Human Error," but the real cause lies elsewhere.',
+    answer:'O',
+    exko:'Human Error는 결과이지 원인이 아닙니다. 시간 압박, SOP 사용성, 형식적 교육, 보고 두려움, 시스템 통제 부재 등 시스템적 요인이 진짜 원인입니다.',
+    exen:'Human Error is the outcome, not the cause. Time pressure, SOP usability, tick-the-box training, fear of reporting, and lack of system controls are the real causes.'
+  },
+  {
+    type:'ox',
+    qko:'"Batch 마감이 다가오는데 기록할 시간이 없다"는 호소는 기록 시간이 작업 일정에 반영되지 않은 구조적 결함의 신호이다.',
+    qen:'"Batch deadline approaching, no time to record" signals a structural flaw — documentation time not built into the schedule.',
+    answer:'O',
+    exko:'시간·업무 압박은 GDP 위반의 주요 근본 원인입니다. 기록할 시간이 없다면, 그 작업을 할 시간도 없다는 것이 GMP의 기본 원칙입니다.',
+    exen:'Time and workload pressure is a major root cause of GDP violations. If there\'s no time to document, there\'s no time to do the work — a fundamental GMP principle.'
+  },
+  {
+    type:'ox',
+    qko:'"일탈의 정상화(Normalization of Deviance)"는 작은 위반이 무사히 넘어가며 점차 "새로운 정상"으로 자리 잡는 현상이다.',
+    qen:'"Normalization of Deviance" is when minor violations gradually become "the new normal" after going unpunished.',
+    answer:'O',
+    exko:'NASA Challenger 사고 후 정의된 개념입니다. 한 번 위반 → 두 번째 무사 → 팀 전체 따라함 → 신입에게 학습되는 4단계로 진행되며, 잘못된 표준이 됩니다.',
+    exen:'Defined after the NASA Challenger disaster. It progresses through 4 stages: one violation → no incident → team adopts → new hires learn — creating a wrong standard.'
+  },
+  {
+    type:'ox',
+    qko:'신입에게 SOP대로 가르치지 않고 "실제로는 이렇게 한다"고 가르치는 것은 일탈의 정상화 단계 중 하나이다.',
+    qen:'Training new hires by "how we actually do it" instead of by SOP is one stage of Normalization of Deviance.',
+    answer:'O',
+    exko:'이는 일탈 정상화의 4단계(잘못된 표준 학습)에 해당합니다. SOP대로 가르치는지, "실제로는 이렇게"라고 가르치는지 자가 진단이 필요합니다.',
+    exen:'This corresponds to stage 4 of Normalization of Deviance (wrong standard learned). Self-check: do you teach by SOP or by "how we actually do it"?'
+  },
+  {
+    type:'ox',
+    qko:'SOP가 너무 길어 어디서 뭘 봐야 할지 모르겠다는 호소는 SOP 사용성(Usability) 문제이며 FDA 평가 대상이다.',
+    qen:'Complaints that SOPs are too long to find needed information signal SOP usability issues, which are now under FDA scrutiny.',
+    answer:'O',
+    exko:'SOP는 규제 대응용만이 아니라 작업자가 실제로 사용 가능해야 합니다. SOP Usability도 FDA 평가 대상이 되고 있으며, 사용 불가능한 SOP는 위반을 유발합니다.',
+    exen:'SOPs must be usable, not just regulatory documents. SOP Usability is now under FDA scrutiny, as unusable SOPs cause violations.'
+  },
+  {
+    type:'ox',
+    qko:'신입 교육이 SOP "읽고 서명하기"로 끝나고 효과성 평가가 없는 것은 형식적 교육(Tick-the-Box Training)에 해당한다.',
+    qen:'New hire training ending with "read and sign SOP" without effectiveness assessment is tick-the-box training.',
+    answer:'O',
+    exko:'"무엇을"은 알지만 "왜"를 모르는 교육은 형식적 교육입니다. 이유를 가르쳐야 압박 상황에서도 SOP를 지킬 수 있습니다.',
+    exen:'Training that conveys "what" but not "why" is tick-the-box. Teaching the "why" enables SOP adherence under pressure.'
+  },
+  {
+    type:'ox',
+    qko:'"실수는 처벌받지 않는다. 은폐는 처벌받는다"는 보고하기 두려운 문화를 개선하기 위한 원칙이다.',
+    qen:'"Mistakes aren\'t punished. Cover-ups are." is a principle to overcome fear-based culture.',
+    answer:'O',
+    exko:'보고하기 두려운 문화는 작은 실수 → 보고 두려움 → 비공식 처리 → 데이터 위조의 악순환을 만듭니다. 실수가 아닌 은폐를 처벌하는 문화 조성이 필수입니다.',
+    exen:'Fear-based culture creates the vicious cycle: minor mistake → fear of reporting → off-the-record fix → falsification. A culture punishing cover-ups, not mistakes, is essential.'
+  },
+  {
+    type:'mc',
+    qko:'PM팀의 GDP 위반 근본 원인 5가지에 해당하지 않는 것은?',
+    qen:'Which is NOT among the 5 root causes of PM-team GDP violations?',
+    options_ko:['시간·업무 압박','일탈의 정상화','SOP 자체의 문제','적정한 인력 배치'],
+    options_en:['Time & Workload Pressure','Normalization of Deviance','Unusable SOPs','Adequate staffing'],
+    answer:3,
+    exko:'5가지 근본 원인은 시간·업무 압박, 일탈의 정상화, SOP 자체의 문제, 형식적 교육 훈련, 보고하기 두려운 문화입니다. 적정한 인력 배치는 오히려 위반 예방에 도움이 됩니다.',
+    exen:'The 5 root causes are Time/Workload Pressure, Normalization of Deviance, Unusable SOPs, Tick-the-Box Training, and Fear-Based Culture. Adequate staffing actually helps prevent violations.'
+  },
+  {
+    type:'mc',
+    qko:'다음 중 표면적 원인(Symptom)과 진짜 원인(Root Cause)이 잘못 짝지어진 것은?',
+    qen:'Which incorrectly pairs a Symptom with its Root Cause?',
+    options_ko:['사후 기록 → 기록 시간이 일정에 반영 안 됨','SOP를 안 지킴 → SOP가 사용 불가능하게 작성됨','Deviation 은닉 → 작업자의 게으름','공유 계정 사용 → 시스템 통제 부재'],
+    options_en:['Backdating → No documentation time in schedule','SOP non-compliance → Unusable SOPs','Hiding deviations → Operator laziness','Shared accounts → Lack of system controls'],
+    answer:2,
+    exko:'Deviation 은닉의 진짜 원인은 "처벌 중심의 문화(Punishment-driven culture)"이지 작업자 개인의 게으름이 아닙니다. Human Error는 결과이지 원인이 아닙니다.',
+    exen:'The real cause of hiding deviations is "punishment-driven culture," not operator laziness. Human Error is the outcome, not the cause.'
+  },
+  {
+    type:'mc',
+    qko:'NASA Challenger 사고 후 정의된 "일탈의 정상화" 4단계 중 마지막 단계는?',
+    qen:'What is the final stage of "Normalization of Deviance" defined after the NASA Challenger disaster?',
+    options_ko:['한 번 위반 (One violation)','두 번째 무사 (No incident)','팀 전체 따라함 (Team adopts)','신입에게 학습됨 (New hires learn)'],
+    options_en:['One violation','No incident','Team adopts','New hires learn'],
+    answer:3,
+    exko:'4단계: 한 번 위반 → 두 번째 무사 → 팀 전체 따라함 → 신입에게 학습됨(잘못된 표준). 마지막 단계에서 잘못된 관행이 회사의 표준으로 자리 잡습니다.',
+    exen:'4 stages: One violation → No incident → Team adopts → New hires learn (wrong standard). In the final stage, bad practice becomes the company\'s standard.'
+  },
+
+  // ─────────────────────────────────────────────────────
+  // [Group F] FDA Warning Letter 사례 / 행동 수칙
+  // ─────────────────────────────────────────────────────
+  {
+    type:'ox',
+    qko:'Batch 기록이 옥상에서 찢긴 채 발견된 인도 제조사는 Import Alert를 받았다.',
+    qen:'An Indian manufacturer whose batch records were found torn on the rooftop received an Import Alert.',
+    answer:'O',
+    exko:'2024년 Unexo Lifesciences FDA WL 실제 사례입니다. 원본 기록 폐기와 소급 작성은 21 CFR 211.180(c) 위반의 직접 증거이며 Import Alert로 이어졌습니다.',
+    exen:'This is a 2024 Unexo Lifesciences FDA WL case. Destroying original records and retrospective preparation directly evidence 21 CFR 211.180(c) violation, leading to Import Alert.'
+  },
+  {
+    type:'ox',
+    qko:'FDA 실사관이 보는 것은 제품이 아니라 기록이며, "기록이 곧 제품이다(Records Are the Product)"라는 원칙이 적용된다.',
+    qen:'FDA inspectors evaluate records, not just products — applying the principle "Records Are the Product."',
+    answer:'O',
+    exko:'FDA의 기본 원칙입니다. 입고, 보관, 유통, 상태 관리, 데이터 무결성 모두 기록으로 검증되며, 기록 없는 작업은 수행되지 않은 것으로 간주됩니다.',
+    exen:'A fundamental FDA principle. Receiving, storage, distribution, status control, and data integrity are all verified through records; undocumented work is considered not done.'
+  },
+  {
+    type:'ox',
+    qko:'"If it\'s not documented, it wasn\'t done"은 FDA의 기본 원칙으로 기록되지 않은 작업은 일어나지 않은 것으로 간주된다.',
+    qen:'"If it\'s not documented, it wasn\'t done" is a fundamental FDA principle: undocumented work is considered as not having been performed.',
+    answer:'O',
+    exko:'PM팀의 모든 활동(입고, 보관, 유통, 온도 모니터링 등)은 즉시·정확하게·판독 가능하게 기록되어야 합니다. 우리의 기록 하나하나가 환자의 안전을 지킵니다.',
+    exen:'All PM-team activities (receiving, storage, distribution, temperature monitoring, etc.) must be recorded immediately, accurately, and legibly. Every record protects patient safety.'
+  },
+  {
+    type:'mc',
+    qko:'창고팀(PM) 행동 수칙 TOP 10에 포함되지 않는 것은?',
+    qen:'Which is NOT in the Warehouse Team (PM) Code of Conduct TOP 10?',
+    options_ko:['즉시 기록 (Record Immediately)','선출고 FEFO 준수 (Ship Oldest Stock First)','개인 계정 유지 (Keep Account Private)','업무 속도 최우선 (Prioritize Speed)'],
+    options_en:['Record Immediately','Ship Oldest Stock First','Keep Account Private','Prioritize Speed'],
+    answer:3,
+    exko:'PM팀 행동 수칙 TOP 10: 즉시 기록, 내 서명만, 수정 원칙, 공란 금지, 펜만 사용, Deviation 즉시 보고, 선출고 FEFO 준수, 개인 계정 유지, Release 후 출고, 모르면 물어본다. 속도는 항목에 없으며 정확성이 우선입니다.',
+    exen:'PM TOP 10: Record Immediately, Sign Only Your Own, Follow Correction Rule, No Blank Spaces, Indelible Pen Only, Report Deviations Now, FEFO, Keep Account Private, Ship Only Released, When in Doubt Ask. Speed is not on the list — accuracy comes first.'
+  },
+  {
+    type:'mc',
+    qko:'다음 FDA Warning Letter 사례 중 ★★★★★ 위험도의 ​​Data Integrity 위반이 아닌 것은?',
+    qen:'Which FDA Warning Letter case is NOT a ★★★★★ Data Integrity violation?',
+    options_ko:['Tyche Industries (2025) — 가동하지 않은 설비의 온도 데이터 조작','Unexo Lifesciences (2024) — Batch 기록 옥상 폐기','ABR Laboratory (2025) — 24시간 이상 냉장고 온도 일탈 미조사','정상 SOP에 따른 자재 입고 기록'],
+    options_en:['Tyche Industries (2025) — Temperature data falsification for non-operating equipment','Unexo Lifesciences (2024) — Batch records torn on rooftop','ABR Laboratory (2025) — 24+ hour refrigerator excursion uninvestigated','Normal SOP-compliant material receipt records'],
+    answer:3,
+    exko:'정상 SOP에 따른 자재 입고 기록은 GMP 준수의 모범이지 위반이 아닙니다. 나머지 셋은 모두 실제 FDA Warning Letter로 발급된 ★★★★★ 수준의 Data Integrity 위반입니다.',
+    exen:'SOP-compliant material receipts are GMP best practice, not violations. The other three are actual ★★★★★ Data Integrity violations from real FDA Warning Letters.'
+  },
+  {
+    type:'mc',
+    qko:'PM팀이 "기록이 곧 제품이다(Records Are the Product)"의 3가지 핵심 원칙은?',
+    qen:'What are the 3 core principles of "Records Are the Product" for PM team?',
+    options_ko:['빠른 기록 · 효율적 처리 · 비용 절감','즉시 기록 · 정직한 보고 · 근본 원인 직시','대량 처리 · 자동화 · 단순화','외부 감사 · 내부 검토 · 보고서 작성'],
+    options_en:['Fast records · Efficient processing · Cost reduction','Contemporaneous · Honest Reporting · Address Root Cause','Mass processing · Automation · Simplification','External audit · Internal review · Report writing'],
+    answer:1,
+    exko:'PM팀의 3가지 핵심 원칙: 즉시 기록(사후 작성 절대 금지), 정직한 보고(은폐는 위조와 같다), 근본 원인 직시(시스템·문화 개선). Human Error는 결과이지 원인이 아닙니다.',
+    exen:'PM\'s 3 core principles: Contemporaneous (never write afterward), Honest Reporting (cover-up = falsification), Address Root Cause (fix system & culture). Human Error is the outcome, not the cause.'
+  },
+  {
+    type:'mc',
+    qko:'"우리의 기록 하나하나가 ○○○○을 지킨다"의 ○○○○에 들어갈 말은?',
+    qen:'In "Every record we make protects ____," what fills the blank?',
+    options_ko:['회사의 매출','환자의 안전','직원의 권리','경영진의 평판'],
+    options_en:['Company revenue','Patient safety','Employee rights','Management reputation'],
+    answer:1,
+    exko:'PM팀의 모든 기록은 환자의 안전을 지킵니다. 입고, 보관, 온도, 유통, 상태 관리, 기록 무결성 — 이 모든 것이 결국 환자에게 안전한 의약품이 도달하도록 하는 것이 GMP의 최종 목적입니다.',
+    exen:'Every PM-team record protects patient safety. Receiving, storage, temperature, distribution, status control, data integrity — all ultimately serve GMP\'s final purpose: safe medicines reaching patients.'
+  }
+];
+
+// ── STATE ─────────────────────────────────────────────────────────
+let lang='ko', totalCount=30, questions=[], current=0, score=0;
+let answered=false, lastAnswerOk=false, playerName='', prevScreen='screen-start';
+let hofRows=[];
+
+// ── LANG ──────────────────────────────────────────────────────────
+function t(ko,en){return lang==='ko'?ko:en;}
+
+window.setLang=function(l){
+  lang=l;
+  document.getElementById('btn-ko').classList.toggle('active',l==='ko');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  document.getElementById('hall-btn').textContent=t('🏆 명예의 전당','🏆 Hall of Fame');
+  // start
+  document.getElementById('start-title').innerHTML=t('PM팀을 위한<br><em>GMP Quiz</em>','GMP Quiz<br><em>for PM Team</em>');
+  document.getElementById('start-sub').textContent=t('Receiving · Storage · Temperature · Distribution · Status Control','Receiving · Storage · Temperature · Distribution · Status Control');
+  document.getElementById('lbl-q').textContent=t('문제','Questions');
+  document.getElementById('lbl-ox').textContent=t('O/X + 객관식','O/X + MCQ');
+  document.getElementById('lbl-fda').textContent=t('실사 기반','FDA Based');
+  document.getElementById('label-name').textContent=t('참여자 이름','Your Name');
+  document.getElementById('name-input').placeholder=t('이름을 입력하세요','Enter your name');
+  document.getElementById('start-btn').textContent=t('퀴즈 시작하기 →','Start Quiz →');
+  document.getElementById('footer-note').textContent=t('본 퀴즈는 PM팀 GMP 교육 목적으로 제작되었습니다','This quiz is for GMP training purposes for the PM team');
+  // result
+  document.getElementById('lbl-correct').textContent=t('정답','Correct');
+  document.getElementById('lbl-wrong').textContent=t('오답','Wrong');
+  document.getElementById('top10-title').textContent=t('🏅 TOP 10 랭킹','🏅 TOP 10 RANKING');
+  document.getElementById('retry-btn').textContent=t('다시 도전하기 →','Try Again →');
+  // hof
+  document.getElementById('hof-title').textContent=t('명예의 전당','Hall of Fame');
+  document.getElementById('hof-sub').textContent=t('TOP 20 랭킹','TOP 20 RANKING');
+  document.getElementById('hof-back-btn').textContent=t('← 돌아가기','← Go Back');
+  document.getElementById('hof-restart-btn').textContent=t('처음으로 →','Restart →');
+  document.getElementById('download-btn-label').textContent=t('전체 결과 엑셀 다운로드','Download All Results (XLSX)');
+  document.getElementById('hof-download-btn-label').textContent=t('전체 결과 엑셀 다운로드','Download All Results (XLSX)');
+  document.getElementById('saving-text').textContent=t('점수 저장 중...','Saving score...');
+
+  // 화면별 재렌더
+  if(document.getElementById('screen-quiz').classList.contains('active')&&questions.length){
+    renderQ();
+    if(answered) refreshFeedback();
+  }
+  if(document.getElementById('screen-result').classList.contains('active')&&questions.length) refreshResultLang();
+  if(document.getElementById('screen-hof').classList.contains('active')) renderHofTable();
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function buildQuestions(n){
+  const pool=shuffle([...QUESTIONS]);
+  return pool.slice(0,Math.min(n,pool.length));
+}
+
+// ── START ─────────────────────────────────────────────────────────
+window.onNameInput=function(){playerName=document.getElementById('name-input').value.trim();updateStartBtn();};
+function updateStartBtn(){document.getElementById('start-btn').disabled=!playerName;}
+window.startQuiz=function(){questions=buildQuestions(totalCount);current=0;score=0;showScreen('screen-quiz');loadQ();};
+
+function showScreen(id){
+  prevScreen=document.querySelector('.screen.active')?.id||'screen-start';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────
+function loadQ(){
+  answered=false;
+  const q=questions[current];
+  document.getElementById('progress-text').textContent=`${current+1} / ${totalCount}`;
+  document.getElementById('score-text').textContent=t(`점수: ${score}`,`Score: ${score}`);
+  document.getElementById('progress-fill').style.width=`${(current/totalCount)*100}%`;
+  document.getElementById('feedback-box').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('check-btn').disabled=true;
+  renderQ();
+}
+
+function renderQ(){
+  const q=questions[current];
+  const badge=document.getElementById('type-badge');
+  badge.className=`type-badge ${q.type}`;
+  badge.textContent=q.type==='ox'?t('O / X 퀴즈','O / X Quiz'):t('📝 객관식','📝 Multiple Choice');
+  document.getElementById('question-text').textContent=lang==='ko'?q.qko:q.qen;
+  document.getElementById('check-btn').textContent=t('정답 확인','Check Answer');
+  document.getElementById('score-text').textContent=t(`점수: ${score}`,`Score: ${score}`);
+  renderOptions();
+}
+
+function renderOptions(){
+  const q=questions[current];
+  const area=document.getElementById('options-area');
+  area.innerHTML='';
+
+  if(q.type==='ox'){
+    const grid=document.createElement('div'); grid.className='ox-grid';
+    ['O','X'].forEach(val=>{
+      const btn=document.createElement('button');
+      btn.className='ox-btn'; btn.dataset.val=val;
+      btn.innerHTML=`${val}<span>${val==='O'?t('맞다','True'):t('틀리다','False')}</span>`;
+      btn.onclick=()=>selectOpt(btn);
+      grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+  } else {
+    const grid=document.createElement('div'); grid.className='mc-grid';
+    const opts=lang==='ko'?q.options_ko:q.options_en;
+    opts.forEach((opt,i)=>{
+      const btn=document.createElement('button');
+      btn.className='mc-btn'; btn.dataset.index=i;
+      btn.innerHTML=`<span class="mc-btn-num">${String.fromCharCode(65+i)}</span>${opt}`;
+      btn.onclick=()=>selectOpt(btn);
+      grid.appendChild(btn);
+    });
+    area.appendChild(grid);
+  }
+}
+
+function selectOpt(clickedBtn){
+  if(answered)return;
+  document.querySelectorAll('.ox-btn,.mc-btn').forEach(b=>b.classList.remove('selected'));
+  clickedBtn.classList.add('selected');
+  document.getElementById('check-btn').disabled=false;
+}
+
+window.checkAnswer=function(){
+  if(answered)return; answered=true;
+  const q=questions[current];
+  let ok=false;
+
+  if(q.type==='ox'){
+    const sel=document.querySelector('.ox-btn.selected');
+    const chosen=sel?sel.dataset.val:'';
+    ok=chosen===q.answer;
+    document.querySelectorAll('.ox-btn').forEach(btn=>{
+      btn.disabled=true;
+      if(btn.dataset.val===q.answer) btn.classList.add('correct');
+      else if(btn.dataset.val===chosen&&!ok) btn.classList.add('wrong');
+    });
+  } else {
+    const sel=document.querySelector('.mc-btn.selected');
+    const idx=sel?parseInt(sel.dataset.index):-1;
+    ok=idx===q.answer;
+    document.querySelectorAll('.mc-btn').forEach((btn,i)=>{
+      btn.disabled=true;
+      if(i===q.answer) btn.classList.add('correct');
+      else if(i===idx&&!ok) btn.classList.add('wrong');
+    });
+  }
+
+  lastAnswerOk=ok;
+  if(ok) score++;
+  refreshFeedback();
+  document.getElementById('check-btn').disabled=true;
+  document.getElementById('score-text').textContent=t(`점수: ${score}`,`Score: ${score}`);
+  if(current<totalCount-1){
+    document.getElementById('next-btn').style.display='block';
+    document.getElementById('next-btn').textContent=t('다음 문제 →','Next Question →');
+  } else {
+    setTimeout(()=>saveAndShowResult(),600);
+  }
+  playSound(ok);
+};
+
+function refreshFeedback(){
+  const q=questions[current];
+  const fb=document.getElementById('feedback-box');
+  fb.style.display='block';
+  fb.className=`feedback-box ${lastAnswerOk?'correct-fb':'wrong-fb'}`;
+  // 정답 오답 메시지
+  if(q.type==='ox'){
+    const ans=q.answer==='O'?t('"맞다" (O)','True (O)'):t('"틀리다" (X)','False (X)');
+    document.getElementById('feedback-result').textContent=lastAnswerOk
+      ?t('✅ 정답입니다!','✅ Correct!')
+      :t(`❌ 오답! 정답은 ${ans} 입니다.`,`❌ Wrong! The answer is ${ans}.`);
+  } else {
+    const opts=lang==='ko'?q.options_ko:q.options_en;
+    document.getElementById('feedback-result').textContent=lastAnswerOk
+      ?t('✅ 정답입니다!','✅ Correct!')
+      :t(`❌ 오답! 정답: ${String.fromCharCode(65+q.answer)}. ${opts[q.answer]}`,
+         `❌ Wrong! Answer: ${String.fromCharCode(65+q.answer)}. ${opts[q.answer]}`);
+  }
+  document.getElementById('feedback-explanation').textContent=`📖 ${lang==='ko'?q.exko:q.exen}`;
+  document.getElementById('check-btn').textContent=t('정답 확인','Check Answer');
+  document.getElementById('next-btn').textContent=t('다음 문제 →','Next Question →');
+
+  // 선택지 텍스트 재렌더(언어 전환 대응)
+  if(!answered) return;
+  if(q.type==='ox'){
+    document.querySelectorAll('.ox-btn').forEach(btn=>{
+      btn.innerHTML=`${btn.dataset.val}<span>${btn.dataset.val==='O'?t('맞다','True'):t('틀리다','False')}</span>`;
+    });
+  } else {
+    const opts=lang==='ko'?q.options_ko:q.options_en;
+    document.querySelectorAll('.mc-btn').forEach((btn,i)=>{
+      btn.innerHTML=`<span class="mc-btn-num">${String.fromCharCode(65+i)}</span>${opts[i]}`;
+    });
+  }
+}
+
+window.nextQuestion=function(){current++;loadQ();};
+
+// ── SOUND ─────────────────────────────────────────────────────────
+let audioCtx=null;
+let bgmNodes=[]; let bgmSessionId=0;
+
+function getACtx(){
+  if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==='suspended') audioCtx.resume();
+  return audioCtx;
+}
+document.addEventListener('touchstart',function ia(){getACtx();document.removeEventListener('touchstart',ia);},{once:true});
+document.addEventListener('click',function ia(){getACtx();document.removeEventListener('click',ia);},{once:true});
+
+function playSound(ok){
+  try{
+    const ctx=getACtx(); const t0=ctx.currentTime;
+    if(ok){
+      [[523,0],[659,0.13],[784,0.26],[1047,0.40]].forEach(([f,d])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.type='sine';
+        o.frequency.setValueAtTime(f,t0+d);
+        g.gain.setValueAtTime(0,t0+d);g.gain.linearRampToValueAtTime(0.15,t0+d+0.04);g.gain.exponentialRampToValueAtTime(0.001,t0+d+0.22);
+        o.start(t0+d);o.stop(t0+d+0.23);
+      });
+    } else {
+      [[330,0,0.30],[262,0.35,0.30],[220,0.70,0.45]].forEach(([f,d,dur])=>{
+        const o=ctx.createOscillator(),g=ctx.createGain();
+        o.connect(g);g.connect(ctx.destination);o.type='sine';
+        o.frequency.setValueAtTime(f,t0+d);o.frequency.linearRampToValueAtTime(f*0.82,t0+d+dur);
+        g.gain.setValueAtTime(0,t0+d);g.gain.linearRampToValueAtTime(0.14,t0+d+0.04);g.gain.exponentialRampToValueAtTime(0.001,t0+d+dur+0.05);
+        o.start(t0+d);o.stop(t0+d+dur+0.06);
+      });
+    }
+  }catch(e){}
+}
+
+function stopBgm(){bgmSessionId++;bgmNodes.forEach(n=>{try{n.stop();}catch(e){}});bgmNodes=[];}
+
+function playBgm(){
+  stopBgm(); const myS=++bgmSessionId;
+  try{
+    const ctx=getACtx();
+    const mel=[[523,0,0.28],[659,0.33,0.28],[784,0.66,0.28],[880,1.0,0.42],[784,1.5,0.20],[659,1.75,0.20],[784,2.0,0.55],[698,2.66,0.28],[784,3.0,0.28],[880,3.33,0.28],[1047,3.66,0.42],[880,4.16,0.20],[784,4.41,0.20],[880,4.66,0.55],[784,5.33,0.20],[698,5.55,0.20],[659,5.77,0.20],[523,6.0,0.55],[659,6.66,0.20],[523,6.88,0.20],[440,7.10,0.20],[523,7.33,0.55]];
+    const bas=[[262,0,0.22],[196,0.33,0.22],[196,0.66,0.22],[262,1.0,0.22],[196,1.5,0.22],[196,2.0,0.22],[349,2.66,0.22],[262,3.0,0.22],[262,3.33,0.22],[349,3.66,0.22],[262,4.16,0.22],[262,4.66,0.22],[392,5.33,0.22],[294,5.77,0.22],[262,6.0,0.22],[330,6.66,0.22],[262,7.10,0.22],[262,7.33,0.22]];
+    const loop=8.0;
+    function sched(){
+      if(bgmSessionId!==myS)return;
+      const t0=ctx.currentTime+0.05;
+      [...mel].forEach(([f,w,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='triangle';o.frequency.setValueAtTime(f,t0+w);g.gain.setValueAtTime(0,t0+w);g.gain.linearRampToValueAtTime(0.07,t0+w+0.03);g.gain.exponentialRampToValueAtTime(0.001,t0+w+d);o.start(t0+w);o.stop(t0+w+d+0.01);bgmNodes.push(o);});
+      [...bas].forEach(([f,w,d])=>{const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.setValueAtTime(f,t0+w);g.gain.setValueAtTime(0,t0+w);g.gain.linearRampToValueAtTime(0.05,t0+w+0.04);g.gain.exponentialRampToValueAtTime(0.001,t0+w+d);o.start(t0+w);o.stop(t0+w+d+0.01);bgmNodes.push(o);});
+      setTimeout(()=>{if(bgmSessionId===myS)sched();},(loop-0.3)*1000);
+    }
+    sched();
+  }catch(e){}
+}
+
+// ── EMAIL & EXCEL EXPORT ───────────────────────────────────────────
+const EMAILJS_PUBLIC_KEY='jPt14lizlL33u8-2T';
+const EMAILJS_SERVICE_ID='service_h6a0do9';
+const EMAILJS_TEMPLATE_ID='template_yl5g06g';
+const RECIPIENT_EMAIL='DM@samil-pharm.com';
+
+// EmailJS 초기화
+try{ emailjs.init({publicKey:EMAILJS_PUBLIC_KEY}); }catch(e){console.warn('EmailJS init failed',e);}
+
+async function sendResultEmail(){
+  const statusEl=document.getElementById('email-status');
+  if(!window.emailjs){
+    statusEl.textContent=t('이메일 라이브러리 로드 실패','Email library failed to load');
+    statusEl.className='email-status error';
+    return;
+  }
+  const pct=Math.round((score/totalCount)*100);
+  let grade;
+  if(pct>=90) grade=t('GMP 마스터','GMP Master');
+  else if(pct>=70) grade=t('우수 수료','Excellent');
+  else if(pct>=50) grade=t('기본기 양호','Good Foundation');
+  else grade=t('재교육 필요','Retraining Needed');
+
+  const now=new Date();
+  const datetime=now.toLocaleString(lang==='ko'?'ko-KR':'en-US');
+
+  // 이메일 본문 (한/영)
+  const messageKo=`안녕하세요,
+
+아래는 GMP Quiz 결과입니다.
+
+▣ 참여자: ${playerName}
+▣ 점수: ${score} / ${totalCount}
+▣ 정답률: ${pct}%
+▣ 등급: ${grade}
+▣ 응시 일시: ${datetime}
+
+본 메일은 자동 발송되었습니다.
+GMP Training System`;
+
+  const messageEn=`Hello,
+
+Below are the GMP Quiz results.
+
+▣ Participant: ${playerName}
+▣ Score: ${score} / ${totalCount}
+▣ Percentage: ${pct}%
+▣ Grade: ${grade}
+▣ Date: ${datetime}
+
+This email was sent automatically.
+GMP Training System`;
+
+  const subjectKo=`[PM GMP Quiz] ${playerName} 님의 퀴즈 결과`;
+  const subjectEn=`[PM GMP Quiz] ${playerName}'s Quiz Result`;
+
+  const params={
+    to_email: RECIPIENT_EMAIL,
+    participant_name: playerName,
+    score: String(score),
+    total: String(totalCount),
+    percentage: String(pct),
+    grade: grade,
+    datetime: datetime,
+    subject: lang==='ko'?subjectKo:subjectEn,
+    message: lang==='ko'?messageKo:messageEn
+  };
+
+  statusEl.textContent=t('📨 이메일 전송 중...','📨 Sending email...');
+  statusEl.className='email-status';
+  try{
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, params);
+    statusEl.textContent=t('✅ 결과가 이메일로 전송되었습니다','✅ Results sent via email');
+    statusEl.className='email-status success';
+  }catch(err){
+    console.error('EmailJS error:',err);
+    statusEl.textContent=t('⚠️ 이메일 전송 실패 (관리자에게 문의)','⚠️ Email failed (contact admin)');
+    statusEl.className='email-status error';
+  }
+}
+
+// 전체 점수 데이터를 가져와 XLSX로 다운로드
+window.downloadXlsx=async function(){
+  if(typeof XLSX==='undefined'){
+    alert(t('엑셀 라이브러리 로드 실패','Excel library failed to load'));
+    return;
+  }
+  const btn1=document.getElementById('result-download-btn');
+  const btn2=document.getElementById('hof-download-btn');
+  [btn1,btn2].forEach(b=>{if(b){b.disabled=true;}});
+  const lblKo='⏳ 다운로드 중...';
+  const lblEn='⏳ Downloading...';
+  document.getElementById('download-btn-label').textContent=t(lblKo,lblEn);
+  document.getElementById('hof-download-btn-label').textContent=t(lblKo,lblEn);
+
+  try{
+    // Firebase에서 전체 데이터 가져오기 (점수 내림차순)
+    const q2=query(collection(db,'pm_gmp_scores'),orderBy('score','desc'));
+    const snap=await getDocs(q2);
+    const rows=[];
+    snap.forEach(doc=>{
+      const d=doc.data();
+      let dt='';
+      if(d.timestamp&&d.timestamp.toDate){
+        dt=d.timestamp.toDate().toLocaleString(lang==='ko'?'ko-KR':'en-US');
+      }
+      const pct=d.total?Math.round((d.score/d.total)*100):0;
+      rows.push({
+        rank: rows.length+1,
+        name: d.name||'',
+        score: d.score||0,
+        total: d.total||0,
+        percentage: pct,
+        datetime: dt
+      });
+    });
+
+    if(!rows.length){
+      alert(t('저장된 기록이 없습니다','No records found'));
+      return;
+    }
+
+    // 헤더 (언어에 따라)
+    const headers=lang==='ko'
+      ? [['순위','이름','점수','총문제','정답률(%)','응시 일시']]
+      : [['Rank','Name','Score','Total','Percentage(%)','Date']];
+    const dataMatrix=rows.map(r=>[r.rank,r.name,r.score,r.total,r.percentage,r.datetime]);
+    const finalData=[...headers,...dataMatrix];
+
+    const ws=XLSX.utils.aoa_to_sheet(finalData);
+    // 컬럼 너비
+    ws['!cols']=[{wch:6},{wch:18},{wch:8},{wch:8},{wch:12},{wch:22}];
+
+    const wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, lang==='ko'?'GMP 퀴즈 결과':'GMP Quiz Results');
+
+    const today=new Date().toISOString().slice(0,10);
+    const fname=`PM_GMP_Quiz_Results_${today}.xlsx`;
+    XLSX.writeFile(wb, fname);
+  }catch(err){
+    console.error('XLSX export error:',err);
+    alert(t('엑셀 다운로드 실패: '+err.message,'Excel download failed: '+err.message));
+  }finally{
+    [btn1,btn2].forEach(b=>{if(b){b.disabled=false;}});
+    document.getElementById('download-btn-label').textContent=t('전체 결과 엑셀 다운로드','Download All Results (XLSX)');
+    document.getElementById('hof-download-btn-label').textContent=t('전체 결과 엑셀 다운로드','Download All Results (XLSX)');
+  }
+};
+
+// ── SAVE & RESULT ──────────────────────────────────────────────────
+async function saveAndShowResult(){
+  document.getElementById('saving-overlay').classList.add('show');
+  try{await addDoc(collection(db,'pm_gmp_scores'),{name:playerName,score,total:totalCount,timestamp:serverTimestamp()});}
+  catch(e){console.error(e);}
+  document.getElementById('saving-overlay').classList.remove('show');
+  await showResult();
+  // 결과 표시 후 이메일 전송 (백그라운드)
+  sendResultEmail();
+}
+
+async function showResult(){
+  showScreen('screen-result');
+  playBgm();
+  document.getElementById('email-status').textContent='';
+  document.getElementById('email-status').className='email-status';
+  const pct=score/totalCount;
+  let emoji,tko,ten,mko,men;
+  if(pct>=0.9){emoji='🏆';tko='GMP 마스터!';ten='GMP Master!';mko='"탁월한 GMP 이해도입니다! 현장의 든든한 수호자네요. 🌟"';men='"Outstanding GMP knowledge! You are a true guardian of the production floor. 🌟"';}
+  else if(pct>=0.7){emoji='⭐';tko='우수 수료!';ten='Excellent!';mko='"훌륭한 점수입니다! 조금 더 다듬으면 완벽해질 거예요. 💪"';men='"Great score! A little more practice and you\'ll be perfect. 💪"';}
+  else if(pct>=0.5){emoji='📋';tko='기본기 양호';ten='Good Foundation';mko='"기본기는 갖추었습니다. 취약 영역을 복습해 보세요. 📚"';men='"Solid foundation. Please review your weak areas. 📚"';}
+  else{emoji='📖';tko='재교육 필요';ten='Retraining Needed';mko='"GMP 교육 자료를 다시 한번 복습하고 재도전해 보세요! 🔄"';men='"Please review the GMP training materials and try again! 🔄"';}
+
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-title').textContent=t(tko,ten);
+  document.getElementById('final-score').textContent=score;
+  document.getElementById('final-total').textContent=t(`/ ${totalCount} 점`,`/ ${totalCount} pts`);
+  document.getElementById('stat-correct').textContent=score;
+  document.getElementById('stat-wrong').textContent=totalCount-score;
+  document.getElementById('result-msg').textContent=t(mko,men);
+
+  const list=document.getElementById('top10-list');
+  list.innerHTML='<div class="hof-loading">⏳</div>';
+  try{
+    const q2=query(collection(db,'pm_gmp_scores'),orderBy('score','desc'),limit(10));
+    const snap=await getDocs(q2);
+    const rows=[];snap.forEach(doc=>rows.push(doc.data()));
+    if(!rows.length){list.innerHTML=`<div class="hof-empty">${t('아직 기록이 없어요 🎯','No records yet 🎯')}</div>`;return;}
+    list.innerHTML='';
+    const medals=['🥇','🥈','🥉'];
+    rows.forEach((r,i)=>{
+      const isMe=r.name===playerName&&r.score===score;
+      const rc=i===0?'gold':i===1?'silver':i===2?'bronze':'';
+      const div=document.createElement('div');div.className=`rank-row${isMe?' me':''}`;
+      div.innerHTML=`<span class="rank-num ${rc}">${i<3?medals[i]:i+1}</span><span class="rank-name">${r.name}${isMe?t(' (나)',' (Me)'):''}</span><span class="rank-score">${r.score}${t('점','pts')}</span>`;
+      list.appendChild(div);
+    });
+  }catch(e){list.innerHTML=`<div class="hof-empty">${t('랭킹을 불러올 수 없어요','Could not load ranking')}</div>`;}
+}
+
+function refreshResultLang(){
+  const pct=score/totalCount;
+  let tko,ten,mko,men;
+  if(pct>=0.9){tko='GMP 마스터!';ten='GMP Master!';mko='"탁월한 GMP 이해도입니다! 현장의 든든한 수호자네요. 🌟"';men='"Outstanding GMP knowledge! You are a true guardian of the production floor. 🌟"';}
+  else if(pct>=0.7){tko='우수 수료!';ten='Excellent!';mko='"훌륭한 점수입니다! 조금 더 다듬으면 완벽해질 거예요. 💪"';men='"Great score! A little more practice and you\'ll be perfect. 💪"';}
+  else if(pct>=0.5){tko='기본기 양호';ten='Good Foundation';mko='"기본기는 갖추었습니다. 취약 영역을 복습해 보세요. 📚"';men='"Solid foundation. Please review your weak areas. 📚"';}
+  else{tko='재교육 필요';ten='Retraining Needed';mko='"GMP 교육 자료를 다시 한번 복습하고 재도전해 보세요! 🔄"';men='"Please review the GMP training materials and try again! 🔄"';}
+  document.getElementById('result-title').textContent=t(tko,ten);
+  document.getElementById('result-msg').textContent=t(mko,men);
+  document.getElementById('final-total').textContent=t(`/ ${totalCount} 점`,`/ ${totalCount} pts`);
+  document.getElementById('lbl-correct').textContent=t('정답','Correct');
+  document.getElementById('lbl-wrong').textContent=t('오답','Wrong');
+  document.getElementById('top10-title').textContent=t('🏅 TOP 10 랭킹','🏅 TOP 10 RANKING');
+  document.getElementById('retry-btn').textContent=t('다시 도전하기 →','Try Again →');
+  document.querySelectorAll('.rank-row').forEach(row=>{
+    const ne=row.querySelector('.rank-name');const se=row.querySelector('.rank-score');
+    if(ne){ne.textContent=ne.textContent.replace(' (나)','').replace(' (Me)','');if(row.classList.contains('me'))ne.textContent+=t(' (나)',' (Me)');}
+    if(se){const n=parseInt(se.textContent);if(!isNaN(n))se.textContent=`${n}${t('점','pts')}`;}
+  });
+}
+
+// ── HALL OF FAME ───────────────────────────────────────────────────
+function renderHofTable(){
+  const content=document.getElementById('hof-content');
+  if(!hofRows.length){content.innerHTML=`<div class="hof-empty">${t('아직 기록이 없어요.<br>퀴즈를 완료하면 이름이 올라와요! 🎯','No records yet.<br>Complete a quiz to appear here! 🎯')}</div>`;return;}
+  const medals=['🥇','🥈','🥉'];
+  let html=`<table class="hof-table"><thead><tr><th>${t('순위','Rank')}</th><th>${t('이름','Name')}</th><th>${t('점수','Score')}</th></tr></thead><tbody>`;
+  hofRows.forEach((r,i)=>{html+=`<tr><td class="hof-rank-cell">${i<3?medals[i]:i+1}</td><td>${r.name}</td><td>${r.score}${t('점','pts')}</td></tr>`;});
+  html+='</tbody></table>';content.innerHTML=html;
+}
+
+window.showHallOfFame=async function(){
+  prevScreen=document.querySelector('.screen.active')?.id||'screen-start';
+  showScreen('screen-hof');
+  stopBgm();
+  setLang(lang);
+  const content=document.getElementById('hof-content');content.innerHTML='<div class="hof-loading">⏳</div>';
+  try{
+    const q2=query(collection(db,'pm_gmp_scores'),orderBy('score','desc'),limit(20));
+    const snap=await getDocs(q2);
+    hofRows=[];snap.forEach(doc=>hofRows.push(doc.data()));
+    renderHofTable();
+  }catch(e){content.innerHTML=`<div class="hof-empty">${t('데이터를 불러올 수 없어요','Could not load data')}</div>`;}
+};
+
+window.goBack=function(){
+  stopBgm();
+  showScreen(prevScreen);
+  if(prevScreen==='screen-result') playBgm();
+};
+
+window.resetQuiz=function(){
+  stopBgm();
+  totalCount=30;questions=[];current=0;score=0;answered=false;
+  document.getElementById('start-btn').disabled=true;
+  showScreen('screen-start');
+  setLang(lang);
+};
+
+// init
+setLang('ko');
+document.addEventListener('touchstart',function startB(){playBgm();document.removeEventListener('touchstart',startB);},{once:true});
+document.addEventListener('click',function startB(){playBgm();document.removeEventListener('click',startB);},{once:true});
+window.startQuiz=function(){questions=buildQuestions(totalCount);current=0;score=0;stopBgm();showScreen('screen-quiz');loadQ();};
+</script>
+</body>
+</html>
